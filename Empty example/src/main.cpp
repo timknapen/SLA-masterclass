@@ -48,7 +48,7 @@ void loop() {
 
   if (now > lastFrame + 1000 / 60) { // do this every 60fps
     lastFrame = now;
-    display.clearDisplay();
+    display.clearDisplayBuffer();
     int x = (now / 10) % 400;
     int y = height / 2 + 100 * sin((float)now / 400);
     display.fillCircle(x, y, 10, BLACK);
