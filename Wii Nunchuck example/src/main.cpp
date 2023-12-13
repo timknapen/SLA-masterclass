@@ -54,7 +54,7 @@ void setupDisplay() {
   SPI.begin(PIN_LCD_CLK, -1, PIN_LCD_DI, PIN_LCD_CS);
   display.begin();
   display.setRotation(1);
-  display.clearDisplay();
+  display.clearDisplayBuffer();
 }
 
 void boundsCheck() {
@@ -88,14 +88,14 @@ void setup() {
   chuck.begin(PIN_SDA, PIN_SCL);
 
   // write something to display
-  display.clearDisplay();
+  display.clearDisplayBuffer();
   display.setTextSize(3);
   display.setTextColor(BLACK);
   display.setCursor(0, 5);
   display.println(" Wii Nunchuck test");
   display.refresh();
   delay(1000);
-  display.clearDisplay();
+  display.clearDisplayBuffer();
 }
 
 void loop() {
@@ -112,7 +112,7 @@ void loop() {
     // Wii
     chuck.update(); // get data from nunchuck
 
-    display.clearDisplay();
+    display.clearDisplayBuffer();
     // minigolf hole
     display.fillCircle(width / 2, 30, 12, GRAY);
 

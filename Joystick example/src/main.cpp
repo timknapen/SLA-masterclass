@@ -32,7 +32,7 @@ void setupDisplay() {
   SPI.begin(PIN_LCD_CLK, -1, PIN_LCD_DI, PIN_LCD_CS);
   display.begin();
   display.setRotation(0);
-  display.clearDisplay();
+  display.clearDisplayBuffer();
 }
 
 // setup the joystick
@@ -80,7 +80,7 @@ void loop() {
     lastFrame = now;
     readJoystick();
 
-    display.clearDisplay(); // clear the screen
+    display.clearDisplayBuffer(); // clear the screen
 
     display.fillCircle(width / 2 + joyX / 4, height / 2 + joyY / 4, 10, GRAY);
 
