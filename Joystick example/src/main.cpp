@@ -1,4 +1,5 @@
 #include "Adafruit_seesaw.h"
+#include "TKPoint.h"
 #include "pins.h"
 #include <Adafruit_GFX.h>
 #include <Adafruit_NeoPixel.h>
@@ -22,6 +23,9 @@ Adafruit_seesaw joystick;
 uint32_t button_mask = (1 << BUTTON_RIGHT) | (1 << BUTTON_DOWN) |
                        (1 << BUTTON_LEFT) | (1 << BUTTON_UP) |
                        (1 << BUTTON_SEL);
+
+int lastX = 0;
+int lastY = 0;
 
 // setup the display
 void setupDisplay() {
@@ -72,17 +76,31 @@ void setup() {
 void loop() {
   unsigned long now = millis(); // get the current time
 
-  if (now > lastFrame + 1000 / 60) { // do this every 60fps
+  if (now > lastFrame + 1000 / 30) { // do this every 60fps
     lastFrame = now;
     readJoystick();
 
     display.clearDisplay(); // clear the screen
 
-    display.fillCircle(width / 2 + joyX/4, height / 2 + joyY/4, 10, GRAY);
+    display.fillCircle(width / 2 + joyX / 4, height / 2 + joyY / 4, 10, GRAY);
+
+    display.drawFatLine(
+        width / 2 + joyX / 4, height / 2 + joyY / 4,   // new position
+        width / 2 + lastX / 4, height / 2 + lastY / 4, // old position
+        10, BLACK);
+    lastX = joyX;
+    lastY = joyY;
 
     // draw center crosshair
     display.drawLine(0, height / 2, width, height / 2, BLACK);
     display.drawLine(width / 2, 0, width / 2, height, BLACK);
+ 
+    // rotating line
+    TKPoint pt(0, 100);
+    TKPoint center(width / 2, height / 2);
+    pt.rotate(360.0f * (float)millis() / 20000.0f);
+    pt += center;
+    display.drawFatLine(center.x, center.y, pt.x, pt.y, 5, BLACK);
 
     display.refresh(); // actually sends it to the display
   }
