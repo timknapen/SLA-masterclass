@@ -12,6 +12,7 @@ const int width = 240;
 
 TKPoint pos(width / 2, height);
 TKPoint vel(0, 0);
+int ballRadius = 10;
 
 // Timing
 unsigned long lastFrame = 0;
@@ -27,8 +28,9 @@ WiiNunchuck chuck;
 Adafruit_NeoPixel pixels(1, PIN_RGB_LED, NEO_GRB + NEO_KHZ800);
 
 // OBSTACLES
-#define NUM_OBSTACLES 5
+#define NUM_OBSTACLES 10
 TKPoint obstacles[NUM_OBSTACLES]; // we created an array of TKPoints
+int obstacleRadius = 20;
 
 void setupObstacles() {
   for (int i = 0; i < NUM_OBSTACLES; i++) {
@@ -39,15 +41,47 @@ void setupObstacles() {
 
 void drawObstacle(int x, int y) {
   // the obstacle is a triangle
-  display.fillTriangle(x - 10, y, // left point
-                       x, y - 10, // top point
-                       x + 10, y, // right point
-                       BLACK);
+  int r = obstacleRadius;
+  // display.fillTriangle(x - r, y + r, // left point
+  //                      x, y - r,     // top point
+  //                      x + r, y + r, // right point
+  //                      GRAY);
+
+  // the obstacle is a circle
+  display.fillCircle(x, y, r, BLACK);
+  // the obstacle is a square
+  // display.fillRect(x - r, y - r, 2 * r, 2 * r, BLACK);
 }
 
 void drawObstacles() {
   for (int i = 0; i < NUM_OBSTACLES; i++) {
     drawObstacle(obstacles[i].x, obstacles[i].y);
+  }
+}
+
+void collideObstacles() {
+  // check all obstacles and see if we have a collision
+  float r = obstacleRadius + ballRadius;
+  for (int i = 0; i < NUM_OBSTACLES; i++) {
+    // these coordinates define the box around the obstacle
+    float x0 = obstacles[i].x - r;
+    float y0 = obstacles[i].y - r;
+    float x1 = obstacles[i].x + r;
+    float y1 = obstacles[i].y + r;
+    if (pos.x > x0 && pos.x < x1 && pos.y > y0 && pos.y < y1) {
+      // if we are here, the ball is inside the box
+      // just go back one step?
+      // pos = pos - vel;
+      float dx = pos.x - obstacles[i].x;
+      float dy = pos.y - obstacles[i].y;
+
+      float dist = sqrt(dx * dx + dy * dy);
+      if (dist < r) {
+        // bounce away!
+        pos.x += dx / 2;
+        pos.y += dy / 2;
+      }
+    }
   }
 }
 
@@ -83,17 +117,17 @@ void setupDisplay() {
 }
 
 void boundsCheck() {
-  if (pos.x < 0) {
-    pos.x = 0;
+  if (pos.x < ballRadius) {
+    pos.x = ballRadius;
   }
-  if (pos.x > width) {
-    pos.x = width;
+  if (pos.x > width - ballRadius) {
+    pos.x = width - ballRadius;
   }
-  if (pos.y < 0) {
-    pos.y = 0;
+  if (pos.y < ballRadius) {
+    pos.y = ballRadius;
   }
-  if (pos.y > height) {
-    pos.y = height;
+  if (pos.y > height - ballRadius) {
+    pos.y = height - ballRadius;
   }
 }
 
@@ -144,10 +178,11 @@ void loop() {
     display.fillCircle(width / 2, 30, 12, GRAY);
 
     if (chuck.c_button) {
-      display.fillCircle(40, height / 4, 20, BLACK);
+      // display.fillCircle(40, height / 4, 20, 3);
+      setupObstacles();
     }
     if (chuck.z_button) {
-      display.fillCircle(40, 3 * height / 4, 20, BLACK);
+      // display.fillCircle(40, 3 * height / 4, 20, 3);
     }
 
     // chuck.printRaw(); // for debugging!
@@ -162,18 +197,19 @@ void loop() {
     TKPoint ap(chuck.aX - 128, -(chuck.aY - 128));
     ap = ap + cc;
     // draw joystick position
-    display.fillCircle(ap.x, ap.y, 5, GRAY);
+    // display.fillCircle(ap.x, ap.y, 5, GRAY);
 
-    // MAIN GUY
+    // MAIN GUY MOVEMENT
     vel.set(chuck.aX - 128, -(chuck.aY - 128));
     vel = vel * 0.1;
     pos = pos + vel;
     boundsCheck();
-    display.fillCircle(pos.x, pos.y, 10, BLACK);
+    collideObstacles();
+    display.fillCircle(pos.x, pos.y, ballRadius, BLACK);
 
     // draw center crosshair
-    display.drawLine(0, height / 2, width, height / 2, BLACK);
-    display.drawLine(width / 2, 0, width / 2, height, BLACK);
+    // display.drawLine(0, height / 2, width, height / 2, BLACK);
+    // display.drawLine(width / 2, 0, width / 2, height, BLACK);
 
     // draw all obstacles
     drawObstacles();

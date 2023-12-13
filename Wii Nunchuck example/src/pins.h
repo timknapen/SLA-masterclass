@@ -2,8 +2,8 @@
 #define _PINS_PINS_H_
 
 // I2C pins
-#define PIN_SDA 2
-#define PIN_SCL 1
+#define PIN_SDA 1
+#define PIN_SCL 2
 
 
 // Colors
