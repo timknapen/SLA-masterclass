@@ -26,6 +26,31 @@ WiiNunchuck chuck;
 // RGB LED
 Adafruit_NeoPixel pixels(1, PIN_RGB_LED, NEO_GRB + NEO_KHZ800);
 
+// OBSTACLES
+#define NUM_OBSTACLES 5
+TKPoint obstacles[NUM_OBSTACLES]; // we created an array of TKPoints
+
+void setupObstacles() {
+  for (int i = 0; i < NUM_OBSTACLES; i++) {
+    obstacles[i].x = random(10, width - 10);
+    obstacles[i].y = random(10, height - 10);
+  }
+}
+
+void drawObstacle(int x, int y) {
+  // the obstacle is a triangle
+  display.fillTriangle(x - 10, y, // left point
+                       x, y - 10, // top point
+                       x + 10, y, // right point
+                       BLACK);
+}
+
+void drawObstacles() {
+  for (int i = 0; i < NUM_OBSTACLES; i++) {
+    drawObstacle(obstacles[i].x, obstacles[i].y);
+  }
+}
+
 // fade pixels
 void pixelShow() {
   // fade in blue
@@ -83,6 +108,8 @@ void setup() {
   // RGB LED show
   pixels.begin();
   pixelShow();
+
+  setupObstacles();
 
   // setup nunchuck
   chuck.begin(PIN_SDA, PIN_SCL);
@@ -147,6 +174,9 @@ void loop() {
     // draw center crosshair
     display.drawLine(0, height / 2, width, height / 2, BLACK);
     display.drawLine(width / 2, 0, width / 2, height, BLACK);
+
+    // draw all obstacles
+    drawObstacles();
 
     // send out to display
     display.refresh();
