@@ -8,12 +8,14 @@ private:
 public:
   Canvas(uint16_t w, uint16_t h);
   ~Canvas(void);
-  void drawFatLine(int x0, int y0,  // first point
-                   int x1, int y1,  // second point
-                   int strokeWidth, // stroke width
+  void drawFatLine(float x0, float y0,  // first point
+                   float x1, float y1,  // second point
+                   float strokeWidth, // stroke width
                    uint16_t color);
-
+  void invert();
   void clear();
+  int getWidth();
+  int getHeight();
 };
 
 #endif

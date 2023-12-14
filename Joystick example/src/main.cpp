@@ -1,4 +1,5 @@
 
+#include "Adafruit_Thermal.h" // PRINTER!
 #include "Adafruit_seesaw.h"
 #include "Canvas.h"
 #include "TKPoint.h"
@@ -23,6 +24,7 @@ Adafruit_SharpMem display =
 // can I create a second image buffer?
 Canvas canvas = Canvas(width, height);
 bool bDrawCanvas = true;
+Adafruit_Thermal printer(&Serial1); // Pass addr to printer constructor
 
 // Joystick
 int joyX, joyY;
@@ -64,6 +66,26 @@ void readJoystick() {
   joyY = (joystick.analogRead(STICK_V) - STICK_CENTER_POINT);
 }
 
+// PRINTER
+void setupPrinter() {
+  Serial1.begin(19200, SERIAL_8N1, PIN_PRINTER_RX, PIN_PRINTER_TX);
+  printer.begin();
+}
+
+void printImage() {
+  printer.wake();       // MUST wake() before printing again, even if reset
+  printer.setDefault(); // Restore printer to defaults
+
+  canvas.invert();
+  printer.printBitmap(canvas.getWidth(), canvas.getHeight(),
+                      canvas.getBuffer());
+  canvas.invert();
+
+  printer.feed(5);
+
+  printer.sleep(); // Tell printer to sleep
+}
+
 //--------------------------------------------------
 void setup() {
   Serial.begin((57600)); // start a serial port at 57600 BAUD
@@ -71,6 +93,7 @@ void setup() {
 
   setupDisplay();
   setupJoystick();
+  setupPrinter();
 
   display.setTextSize(3);
   display.setTextColor(BLACK);
@@ -92,6 +115,9 @@ void readSerial() {
     case 'x':
       canvas.clear();
       Serial.println("Clear canvas");
+      break;
+    case 'p':
+      printImage();
       break;
     }
   }
@@ -117,18 +143,23 @@ void loop() {
     // lastY = joyY;
 
     // DEMO Rotating line in the center
-    TKPoint pt(0, 100);
+    float l = sinf((float)millis() / 230.0f);
+    TKPoint pt(0, 50 + 40 * l);
     TKPoint center(width / 2, height / 2);
-    pt.rotate(360.0f * (float)millis() / 20000.0f);
+    pt.rotate(360.0f * (float)millis() / 2300.0f);
     pt += center;
-    canvas.drawFatLine(lastX, lastY, pt.x, pt.y, 5, BLACK);
+    canvas.drawFatLine(lastX, lastY, pt.x, pt.y, 5 + 0.5, BLACK);
+    canvas.fillCircle(pt.x, pt.y, 5, BLACK);
+
     lastX = pt.x;
     lastY = pt.y;
     display.fillCircle(pt.x, pt.y, 10, GRAY);
 
     if (bDrawCanvas) {
-      // this inverts
+      canvas.invert();
+      // drawBitmap inverts!
       display.drawBitmap(0, 0, canvas.getBuffer(), width, height, BLACK);
+      canvas.invert();
     }
 
     // Draw the grid

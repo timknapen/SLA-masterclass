@@ -7,9 +7,18 @@ Canvas::~Canvas(void) {
     free(buffer);
 }
 
-void Canvas::drawFatLine(int x0, int y0,  // first point
-                         int x1, int y1,  // second point
-                         int strokeWidth, // stroke width
+void Canvas::invert() {
+  // invert our image
+  uint32_t bytes = ((_width + 7) / 8) * _height;
+  uint8_t *buf = getBuffer();
+  for (int i = 0; i < bytes; i++) {
+    buf[i] = ~buf[i];
+  }
+}
+
+void Canvas::drawFatLine(float x0, float y0,  // first point
+                         float x1, float y1,  // second point
+                         float strokeWidth, // stroke width
                          uint16_t color) {
   if (strokeWidth < 1) {
     return;
@@ -29,16 +38,24 @@ void Canvas::drawFatLine(int x0, int y0,  // first point
   py = (float)strokeWidth * py / l;
 
   // finally draw our line!
-  fillTriangle(x0 + (int)px, y0 + (int)py, // a
-               x1 + (int)px, y1 + (int)py, // b
-               x1 - (int)px, y1 - (int)py, // c
+  fillTriangle(x0 + px, y0 + py, // a
+               x1 + px, y1 + py, // b
+               x1 - px, y1 - py, // c
                color);
-  fillTriangle(x0 + (int)px, y0 + (int)py, // a
-               x1 - (int)px, y1 - (int)py, // c
-               x0 - (int)px, y0 - (int)py, // d
+  fillTriangle(x0 + px, y0 + py, // a
+               x1 - px, y1 - py, // c
+               x0 - px, y0 - py, // d
                color);
 }
 
-void Canvas::clear(){
-    fillScreen(1); // fill white
+void Canvas::clear() {
+  fillScreen(1); // fill white
+}
+
+int Canvas::getWidth(){
+  return _width;
+}
+
+int Canvas::getHeight(){
+  return _height;
 }

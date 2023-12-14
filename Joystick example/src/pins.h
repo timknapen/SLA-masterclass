@@ -1,6 +1,11 @@
 #ifndef _PINS_PINS_H_
 #define _PINS_PINS_H_
 
+
+// PRINTER
+#define PIN_PRINTER_RX 21 // printer data out GREEN
+#define PIN_PRINTER_TX 20 // printer data in YELLOW
+
 // I2C pins
 #define PIN_SDA 1
 #define PIN_SCL 2
