@@ -1,5 +1,6 @@
 
 #include "Adafruit_seesaw.h"
+#include "Canvas.h"
 #include "TKPoint.h"
 #include "pins.h"
 #include <Adafruit_GFX.h>
@@ -20,7 +21,8 @@ Adafruit_SharpMem display =
     Adafruit_SharpMem(&SPI, PIN_LCD_CS, width, height, 8000000);
 
 // can I create a second image buffer?
-// GFX_canvas1 canvas
+Canvas canvas = Canvas(width, height);
+bool bDrawCanvas = true;
 
 // Joystick
 int joyX, joyY;
@@ -38,6 +40,7 @@ void setupDisplay() {
   display.begin();
   display.setRotation(0);
   display.clearDisplayBuffer();
+  canvas.clear();
 }
 
 // setup the joystick
@@ -78,35 +81,64 @@ void setup() {
   delay(1000);
 }
 
+void readSerial() {
+  while (Serial.available() > 0) {
+    char c = Serial.read();
+    switch (c) {
+    case 'c':
+      bDrawCanvas = !bDrawCanvas;
+      Serial.println(bDrawCanvas ? " Draw canvas" : " Do not draw canvas");
+      break;
+    case 'x':
+      canvas.clear();
+      Serial.println("Clear canvas");
+      break;
+    }
+  }
+}
+
 //--------------------------------------------------
 void loop() {
   unsigned long now = millis(); // get the current time
-
+  readSerial();
   if (now > lastFrame + 1000 / 30) { // do this every 60fps
     lastFrame = now;
     readJoystick();
 
     display.clearDisplayBuffer(); // clear the screen
 
-    display.fillCircle(width / 2 + joyX / 4, height / 2 + joyY / 4, 10, GRAY);
+    // The joystick drawing
+    // canvas.fillCircle(width / 2 + joyX / 4, height / 2 + joyY / 4, 10, GRAY);
+    // canvas.drawFatLine(
+    //     width / 2 + joyX / 4, height / 2 + joyY / 4,   // new position
+    //     width / 2 + lastX / 4, height / 2 + lastY / 4, // old position
+    //     10, BLACK);
+    // lastX = joyX;
+    // lastY = joyY;
 
-    display.drawFatLine(
-        width / 2 + joyX / 4, height / 2 + joyY / 4,   // new position
-        width / 2 + lastX / 4, height / 2 + lastY / 4, // old position
-        10, BLACK);
-    lastX = joyX;
-    lastY = joyY;
-
-    // draw center crosshair
-    display.drawLine(0, height / 2, width, height / 2, BLACK);
-    display.drawLine(width / 2, 0, width / 2, height, BLACK);
-
-    // rotating line
+    // DEMO Rotating line in the center
     TKPoint pt(0, 100);
     TKPoint center(width / 2, height / 2);
     pt.rotate(360.0f * (float)millis() / 20000.0f);
     pt += center;
-    display.drawFatLine(center.x, center.y, pt.x, pt.y, 5, BLACK);
+    canvas.drawFatLine(lastX, lastY, pt.x, pt.y, 5, BLACK);
+    lastX = pt.x;
+    lastY = pt.y;
+    display.fillCircle(pt.x, pt.y, 10, GRAY);
+
+    if (bDrawCanvas) {
+      // this inverts
+      display.drawBitmap(0, 0, canvas.getBuffer(), width, height, BLACK);
+    }
+
+    // Draw the grid
+    int gridw = 20;
+    for (int x = 0; x < width; x += gridw) {
+      display.drawLine(x, 0, x, height, BLACK);
+    }
+    for (int y = 0; y < height; y += gridw) {
+      display.drawLine(0, y, width, y, BLACK);
+    }
 
     display.refresh(); // actually sends it to the display
   }
