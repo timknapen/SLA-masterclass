@@ -1,3 +1,4 @@
+
 #include "Adafruit_seesaw.h"
 #include "TKPoint.h"
 #include "pins.h"
@@ -5,6 +6,7 @@
 #include <Adafruit_NeoPixel.h>
 #include <Adafruit_SharpMem.h>
 #include <Arduino.h>
+#define TWI_FREQ 10000L
 
 // screen dimensions
 const int height = 240;
@@ -16,6 +18,9 @@ unsigned long lastFrame = 0;
 // SHARP display
 Adafruit_SharpMem display =
     Adafruit_SharpMem(&SPI, PIN_LCD_CS, width, height, 8000000);
+
+// can I create a second image buffer?
+// GFX_canvas1 canvas
 
 // Joystick
 int joyX, joyY;
@@ -37,7 +42,8 @@ void setupDisplay() {
 
 // setup the joystick
 void setupJoystick() {
-  Wire.begin(PIN_SDA, PIN_SCL);
+  Wire.begin(PIN_SDA, PIN_SCL, TWI_FREQ);
+  // Wire.begin(PIN_SDA, PIN_SCL);
   if (!joystick.begin(0x49)) {
     Serial.println("ERROR! joystick not found");
   } else {
@@ -94,7 +100,7 @@ void loop() {
     // draw center crosshair
     display.drawLine(0, height / 2, width, height / 2, BLACK);
     display.drawLine(width / 2, 0, width / 2, height, BLACK);
- 
+
     // rotating line
     TKPoint pt(0, 100);
     TKPoint center(width / 2, height / 2);
