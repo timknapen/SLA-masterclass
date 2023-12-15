@@ -16,22 +16,31 @@ void Canvas::invert() {
   }
 }
 
+unsigned char reverse(unsigned char b) {
+  b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
+  b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
+  b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
+  return b;
+}
+
 void Canvas::invertAndFlip() {
   // invert our image
   uint32_t bytes = ((_width + 7) / 8) * _height;
   uint8_t *buf = getBuffer();
-  uint8_t tmbuf[bytes];
+  uint8_t *tmpBuf = new uint8_t[bytes];
   for (int i = 0; i < bytes; i++) {
-    tmbuf[bytes - 1 - i] = ~buf[i];
+
+    tmpBuf[bytes - 1 - i] = ~buf[i];
   }
   for (int i = 0; i < bytes; i++) {
-    buf[i] = tmbuf[i];
+    buf[i] = reverse(tmpBuf[i]);
   }
+  delete tmpBuf;
 }
 
-void Canvas::drawFatLine(float x0, float y0,  // first point
-                         float x1, float y1,  // second point
-                         float strokeWidth, // stroke width
+void Canvas::drawFatLine(float x0, float y0, // first point
+                         float x1, float y1, // second point
+                         float strokeWidth,  // stroke width
                          uint16_t color) {
   if (strokeWidth < 1) {
     return;
@@ -65,10 +74,6 @@ void Canvas::clear() {
   fillScreen(1); // fill white
 }
 
-int Canvas::getWidth(){
-  return _width;
-}
+int Canvas::getWidth() { return _width; }
 
-int Canvas::getHeight(){
-  return _height;
-}
+int Canvas::getHeight() { return _height; }
