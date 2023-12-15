@@ -13,6 +13,7 @@ public:
                    float strokeWidth, // stroke width
                    uint16_t color);
   void invert();
+  void invertAndFlip();
   void clear();
   int getWidth();
   int getHeight();

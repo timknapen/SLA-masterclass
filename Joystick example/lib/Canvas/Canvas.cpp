@@ -16,6 +16,19 @@ void Canvas::invert() {
   }
 }
 
+void Canvas::invertAndFlip() {
+  // invert our image
+  uint32_t bytes = ((_width + 7) / 8) * _height;
+  uint8_t *buf = getBuffer();
+  uint8_t tmbuf[bytes];
+  for (int i = 0; i < bytes; i++) {
+    tmbuf[bytes - 1 - i] = ~buf[i];
+  }
+  for (int i = 0; i < bytes; i++) {
+    buf[i] = tmbuf[i];
+  }
+}
+
 void Canvas::drawFatLine(float x0, float y0,  // first point
                          float x1, float y1,  // second point
                          float strokeWidth, // stroke width

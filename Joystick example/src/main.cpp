@@ -21,7 +21,7 @@ unsigned long lastFrame = 0;
 Adafruit_SharpMem display =
     Adafruit_SharpMem(&SPI, PIN_LCD_CS, width, height, 8000000);
 
-// can I create a second image buffer?
+// Yes I can create an image buffer
 Canvas canvas = Canvas(width, height);
 bool bDrawCanvas = true;
 Adafruit_Thermal printer(&Serial1); // Pass addr to printer constructor
@@ -76,10 +76,10 @@ void printImage() {
   printer.wake();       // MUST wake() before printing again, even if reset
   printer.setDefault(); // Restore printer to defaults
 
-  canvas.invert();
+  canvas.invertAndFlip();
   printer.printBitmap(canvas.getWidth(), canvas.getHeight(),
                       canvas.getBuffer());
-  canvas.invert();
+  canvas.invertAndFlip();
 
   printer.feed(5);
 
