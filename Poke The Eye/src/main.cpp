@@ -2,7 +2,6 @@
 #include "WiiNunchuck.h"
 #include "pins.h"
 #include <Adafruit_GFX.h>
-#include <Adafruit_NeoPixel.h>
 #include <Adafruit_SharpMem.h>
 #include <Arduino.h>
 
@@ -10,14 +9,24 @@
 const int height = 400;
 const int width = 240;
 
+// Timing
+unsigned long lastFrame = 0;
+
+// SHARP display
+Adafruit_SharpMem display =
+    Adafruit_SharpMem(&SPI, PIN_LCD_CS, height, width, 8000000);
+
+// Protagonist aka BALL
 int ballRadius = 20;
-TKPoint pos(width / 2, height - ballRadius);
-TKPoint vel(0, 0);
-float movement = 0;
+TKPoint pos(width / 2, height - ballRadius); // position of the ball
+TKPoint vel(0, 0);                           // velocity of the ball
+float movement = 0;                          // movement level
 
 void trackMovement() {
-  float frameMovement = vel.length() / 128.0f;
-  movement -= 0.1; // automatically decrease movement!
+  // keep track of the movement of the accelerometer
+  float frameMovement = 3 * vel.length() / 128.0f;
+  movement += frameMovement;
+  movement -= 0.1; // automatically decrease movement! => tune this!
 
   if (movement < 0) {
     movement = 0;
@@ -28,23 +37,14 @@ void trackMovement() {
 }
 
 void drawMovement() {
+  // draw the amount of movement
   display.fillRect(width - 20, height / 2, 20, 50, GRAY);
-  display.fillRect(width - 20, height / 2 + 50 - movement * 5, 20, movement * 5,
-                   GRAY);
+  display.fillRect(width - 20, height / 2 + 50 - movement * 5, 20,2,
+                   BLACK);
 }
-
-// Timing
-unsigned long lastFrame = 0;
-
-// SHARP display
-Adafruit_SharpMem display =
-    Adafruit_SharpMem(&SPI, PIN_LCD_CS, height, width, 8000000);
 
 // Wii Nunchuck
 WiiNunchuck chuck;
-
-// RGB LED
-Adafruit_NeoPixel pixels(1, PIN_RGB_LED, NEO_GRB + NEO_KHZ800);
 
 #define NUM_OBSTACLES 10
 TKPoint obstacles[NUM_OBSTACLES]; // we created a array of TKpoints
@@ -106,30 +106,6 @@ void collideObstacles() {
   }
 }
 
-// fade pixels
-void pixelShow() {
-  // fade in blue
-  for (int i = 0; i < 255; i++) {
-    pixels.setPixelColor(0, pixels.Color(0, 0, i));
-    pixels.show();
-    delay(1);
-  }
-  // blue to red
-  for (int i = 0; i < 255; i++) {
-    pixels.setPixelColor(0, pixels.Color(i, 0, 255 - i));
-    pixels.show();
-    delay(1);
-  }
-  // fade out red
-  for (int i = 0; i < 255; i++) {
-    pixels.setPixelColor(0, pixels.Color(255 - i, 0, 0));
-    pixels.show();
-    delay(1);
-  }
-  pixels.setPixelColor(0, pixels.Color(0, 0, 0));
-  pixels.show();
-}
-
 void setupDisplay() {
   SPI.begin(PIN_LCD_CLK, -1, PIN_LCD_DI, PIN_LCD_CS);
   display.begin();
@@ -155,15 +131,11 @@ void boundsCheck() {
 void setup() {
   Serial.begin(57600);
   delay(1000);
-  Serial.println(" Wii Nunchuck test");
+  Serial.println(" POKE THE EYE");
   delay(100);
 
   setupDisplay();
   setupObstacles();
-
-  // RGB LED show
-  pixels.begin();
-  // pixelShow();
 
   // setup nunchuck
   chuck.begin(PIN_SDA, PIN_SCL);
@@ -184,7 +156,7 @@ void setup() {
 
 void drawEye(int x, int y, bool isOpen) {
   if (pos.y < 60) {
-    // draw cross
+    // draw crosses for eyes if the ball is in the top zone
     int r = 15;
     display.drawFatLine(x - r, y - r, x + r, y + r, 3, BLACK);
     display.drawFatLine(x - r, y + r, x + r, y - r, 3, BLACK);
@@ -210,11 +182,6 @@ void loop() {
   unsigned long now = millis();
 
   if (now > lastFrame + 1000 / 60) { // 60fps
-    float frameTime = now - lastFrame;
-    int FPS = 0;
-    if (frameTime > 0) {
-      FPS = 1000 / frameTime;
-    }
     lastFrame = now; // reset the timer
 
     // Wii
@@ -224,7 +191,7 @@ void loop() {
 
     // Eyes and background
     display.fillRect(0, 0, width, 60, GRAY);
-    bool isOpen = (millis() / 1000) % 6 < 3;
+    bool isOpen = (millis() / 1000) % 6 < 3; // this decides if the eyes are open or closed
     drawEye(width / 3, 30, isOpen);
     drawEye(2 * width / 3, 30, isOpen);
 
@@ -242,18 +209,16 @@ void loop() {
 
     // chuck.printRaw(); // for debugging!
 
-
-    // MAIN GUY
+    // MAIN GUY aka BALL
     vel.set(chuck.aX - 128, -(chuck.aY - 128));
-    vel = vel * 0.3; // scale down
-    pos = pos + vel;
+    pos = pos + vel * 0.3; // scale down velocity a little
     boundsCheck();
     collideObstacles();
     display.fillCircle(pos.x, pos.y, ballRadius, BLACK);
 
     drawObstacles();
 
-     // track movement
+    // track movement
     trackMovement();
     drawMovement();
 
