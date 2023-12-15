@@ -71,6 +71,12 @@ void TKPoint::normalize() {
 }
 
 //------------------------------------------------------------
+float TKPoint::length() {
+  float l = sqrt(x * x + y * y + z * z);
+  return l;
+}
+
+//------------------------------------------------------------
 void TKPoint::rotate(float angle) {
   // rotate our point in the XY plane
   float angle_rad = PI * angle / 180.0f;

@@ -22,13 +22,14 @@ public:
   TKPoint operator*(float s);
   void rotate(float angle);
   void operator+=(const TKPoint p);
-
   void normalize();
+  float length();
 };
 
 float dist(float x1, float y1, float x2, float y2);
 float dist(TKPoint p1, TKPoint p2);
 float len(TKPoint p);
 void normalize(TKPoint &p);
+
 
 #endif

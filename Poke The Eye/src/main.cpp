@@ -13,6 +13,25 @@ const int width = 240;
 int ballRadius = 20;
 TKPoint pos(width / 2, height - ballRadius);
 TKPoint vel(0, 0);
+float movement = 0;
+
+void trackMovement() {
+  float frameMovement = vel.length() / 128.0f;
+  movement -= 0.1; // automatically decrease movement!
+
+  if (movement < 0) {
+    movement = 0;
+  }
+  if (movement > 10) {
+    movement = 10;
+  }
+}
+
+void drawMovement() {
+  display.fillRect(width - 20, height / 2, 20, 50, GRAY);
+  display.fillRect(width - 20, height / 2 + 50 - movement * 5, 20, movement * 5,
+                   GRAY);
+}
 
 // Timing
 unsigned long lastFrame = 0;
@@ -222,18 +241,7 @@ void loop() {
     }
 
     // chuck.printRaw(); // for debugging!
-    // TKPoint cp(2 * chuck.joyX, -2 * chuck.joyY);
-    TKPoint cc(width / 2, height / 2);
 
-    // draw accelerometer positions
-    // display.fillRect(400 / 4, 240 / 2, 4, chuck.aX - 128, GRAY);
-    // display.fillRect(400 / 2, 240 / 2, 4, chuck.aY - 128, GRAY);
-    // display.fillRect(3 * 400 / 4, 240 / 2, 4, chuck.aZ - 128, GRAY);
-
-    TKPoint ap(chuck.aX - 128, -(chuck.aY - 128));
-    ap = ap + cc;
-    // draw joystick position
-    // display.fillCircle(ap.x, ap.y, 5, GRAY);
 
     // MAIN GUY
     vel.set(chuck.aX - 128, -(chuck.aY - 128));
@@ -243,14 +251,13 @@ void loop() {
     collideObstacles();
     display.fillCircle(pos.x, pos.y, ballRadius, BLACK);
 
-    // draw center crosshair
-    // display.drawLine(0, height / 2, width, height / 2, BLACK);
-    // display.drawLine(width / 2, 0, width / 2, height, BLACK);
-
-    // send out to display
-
     drawObstacles();
 
+     // track movement
+    trackMovement();
+    drawMovement();
+
+    // send out to display
     display.refresh();
   }
 }
