@@ -16,6 +16,8 @@ void Canvas::invert() {
   }
 }
 
+// this reverses the bits in a byte
+// so 01011 becomes 11010 for example
 unsigned char reverse(unsigned char b) {
   b = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
   b = (b & 0xCC) >> 2 | (b & 0x33) << 2;
@@ -24,18 +26,17 @@ unsigned char reverse(unsigned char b) {
 }
 
 void Canvas::invertAndFlip() {
-  // invert our image
+  // invert our image and turn it 180 degrees
   uint32_t bytes = ((_width + 7) / 8) * _height;
   uint8_t *buf = getBuffer();
   uint8_t *tmpBuf = new uint8_t[bytes];
   for (int i = 0; i < bytes; i++) {
-
     tmpBuf[bytes - 1 - i] = ~buf[i];
   }
   for (int i = 0; i < bytes; i++) {
     buf[i] = reverse(tmpBuf[i]);
   }
-  delete tmpBuf;
+  delete tmpBuf; 
 }
 
 void Canvas::drawFatLine(float x0, float y0, // first point

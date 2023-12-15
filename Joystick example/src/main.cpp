@@ -5,7 +5,6 @@
 #include "TKPoint.h"
 #include "pins.h"
 #include <Adafruit_GFX.h>
-#include <Adafruit_NeoPixel.h>
 #include <Adafruit_SharpMem.h>
 #include <Arduino.h>
 #define TWI_FREQ 10000L
@@ -132,15 +131,6 @@ void loop() {
     readJoystick();
 
     display.clearDisplayBuffer(); // clear the screen
-
-    // The joystick drawing
-    // canvas.fillCircle(width / 2 + joyX / 4, height / 2 + joyY / 4, 10, GRAY);
-    // canvas.drawFatLine(
-    //     width / 2 + joyX / 4, height / 2 + joyY / 4,   // new position
-    //     width / 2 + lastX / 4, height / 2 + lastY / 4, // old position
-    //     10, BLACK);
-    // lastX = joyX;
-    // lastY = joyY;
 
     // DEMO Rotating line in the center
     float l = sinf((float)millis() / 230.0f);
